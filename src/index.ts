@@ -2,7 +2,6 @@ import {Composition} from './composition';
 import {Layer} from './layer';
 
 (async () => {
-/*
     console.log('Init...');
     let comp = await Composition.create('my1');
     console.log('Connecting...');
@@ -23,7 +22,6 @@ import {Layer} from './layer';
     console.log('Disconnecting...');
     await comp.disconnect();
     console.log('Disconnected!');
-*/
 
     console.log('Opening...');
     let comp2 = await Composition.open('my1');
