@@ -3,7 +3,7 @@ import { VM } from './vm';
 export declare class Composition extends VM {
     static mainFile: string;
     static root: string;
-    name: string;
+    title: string;
     layers: Layer[];
     static getPathByName(name: string): string;
     static create(name: string): Promise<Composition>;

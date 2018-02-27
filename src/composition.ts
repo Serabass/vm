@@ -5,7 +5,7 @@ import {VM} from './vm';
 export class Composition extends VM {
     public static mainFile: string = 'comp.json';
     public static root: string = '/vagrant_data/comps';
-    public name: string;
+    public title: string;
     public layers: Layer[] = [];
 
     public static getPathByName(name: string) {
@@ -24,7 +24,7 @@ export class Composition extends VM {
         let filePath = path.join(pathByName, Composition.mainFile).replace(/\\/g, '/');
         await Composition.vagrantExec(`echo {} > ${filePath}`);
         let composition = new Composition();
-        composition.name = name;
+        composition.title = name;
         return composition;
     }
 
@@ -38,20 +38,25 @@ export class Composition extends VM {
         let filePath = path.join(pathByName, Composition.mainFile).replace(/\\/g, '/');
         let layersDirPath = path.join(pathByName, 'layers').replace(/\\/g, '/');
         let contents = await Composition.vagrantExec(`cat ${filePath}`);
-
         let json = JSON.parse(contents);
         let composition = new Composition();
-        composition.name = json.name;
+
+        composition.title = json.title;
 
         if (await this.directoryExists(layersDirPath)) {
-            let response: string = await Composition.vagrantExec(`cd ${layersDirPath} && ls`);
+            let response: string = await Composition.vagrantExec(`ls ${layersDirPath}`);
             let files: string[] = response.split('\n');
             files.pop();
 
             if (files.length > 0) {
                 for (let file of files) {
-                    let layerFileContents = await Composition.vagrantExec(`cat ${file}`);
-                    debugger;
+                    let layerFileContents = await Composition.vagrantExec(`cat ${layersDirPath}/${file}`);
+                    let layerJSON = JSON.parse(layerFileContents);
+                    let layer = new Layer(composition);
+                    layer.title = layerJSON.title;
+                    layer.width = layerJSON.width;
+                    layer.height = layerJSON.height;
+                    composition.layers.push(layer);
                 }
             }
         }
@@ -66,7 +71,7 @@ export class Composition extends VM {
     }
 
     public get path(): string {
-        return Composition.getPathByName(this.name);
+        return Composition.getPathByName(this.title);
     }
 
     public get layersPath() {
@@ -76,7 +81,7 @@ export class Composition extends VM {
 
     public async save(): Promise<void> {
         let obj: any = {};
-        obj.title = this.name;
+        obj.title = this.title;
         let json = JSON.stringify(obj).replace(/"/g, '\\$&');
         let compPath = path.join(this.path, Composition.mainFile).replace(/\\/g, '/');
         await this.execNoData(`echo "${json}" > "${compPath}"`);
